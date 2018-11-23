@@ -1,7 +1,6 @@
 const { getFieldInfo, tryCatch } = require('./utils')
 const reduce = require('lodash.reduce')
 const get = require('lodash.get')
-const Validator = require('protodef-validator')
 
 function isFieldInfo (type) {
   return typeof type === 'string' ||
@@ -42,9 +41,8 @@ function extendType (functions, defaultTypeArgs) {
 }
 
 class ProtoDef {
-  constructor (validation = true) {
+  constructor () {
     this.types = {}
-    this.validator = validation ? new Validator() : null
     this.addDefaultTypes()
   }
 
@@ -62,45 +60,23 @@ class ProtoDef {
       if (protocolData.types) { self.addTypes(protocolData.types) }
       recursiveAddTypes(get(protocolData, path.shift()), path)
     }
-
-    if (this.validator) { this.validator.validateProtocol(protocolData) }
-
     recursiveAddTypes(protocolData, path)
   }
 
   addType (name, functions, validate = true) {
     if (functions === 'native') {
-      if (this.validator) { this.validator.addType(name) }
       return
     }
     if (isFieldInfo(functions)) {
-      if (this.validator) {
-        if (validate) { this.validator.validateType(functions) }
-        this.validator.addType(name)
-      }
-
       let { type, typeArgs } = getFieldInfo(functions)
       this.types[name] = typeArgs ? extendType(this.types[type], typeArgs) : this.types[type]
     } else {
-      if (this.validator) {
-        if (functions[3]) {
-          this.validator.addType(name, functions[3])
-        } else { this.validator.addType(name) }
-      }
-
       this.types[name] = functions
     }
   }
 
   addTypes (types) {
     Object.keys(types).forEach((name) => this.addType(name, types[name], false))
-    if (this.validator) {
-      Object.keys(types).forEach((name) => {
-        if (isFieldInfo(types[name])) {
-          this.validator.validateType(types[name])
-        }
-      })
-    }
   }
 
   read (buffer, cursor, _fieldInfo, rootNodes) {
