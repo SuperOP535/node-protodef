@@ -1,5 +1,5 @@
 {
-  "name": "protodef",
+  "name": "protodef-lite",
   "version": "1.6.9",
   "description": "A simple yet powerful way to define binary protocols",
   "main": "index.js",
@@ -23,12 +23,12 @@
     "node": ">=6"
   },
   "bugs": {
-    "url": "https://github.com/ProtoDef-io/node-protodef/issues"
+    "url": "https://github.com/SuperOP535/protodef-lite/issues"
   },
-  "homepage": "https://github.com/ProtoDef-io/node-protodef",
+  "homepage": "https://github.com/SuperOP535/protodef-lite",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ProtoDef-io/node-protodef.git"
+    "url": "https://github.com/SuperOP535/protodef-lite.git"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
