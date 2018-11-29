@@ -67,7 +67,7 @@ function readVarInt (buffer, offset) {
 
   while (true) {
     if (cursor + 1 > buffer.length) { throw new PartialReadError() }
-    const b = buffer.readUInt8(cursor)
+    const b = buffer.getUint8(cursor)
     result |= ((b & 0x7f) << shift) // Add the bits to our number, except MSB
     cursor++
     if (!(b & 0x80)) { // If the MSB is not set, we return the number
@@ -93,11 +93,11 @@ function sizeOfVarInt (value) {
 function writeVarInt (value, buffer, offset) {
   let cursor = 0
   while (value & ~0x7F) {
-    buffer.writeUInt8((value & 0xFF) | 0x80, offset + cursor)
+    buffer.setUint8(offset + cursor, (value & 0xFF) | 0x80)
     cursor++
     value >>>= 7
   }
-  buffer.writeUInt8(value, offset + cursor)
+  buffer.setUint8(offset + cursor, value)
   return offset + cursor + 1
 }
 
@@ -105,13 +105,13 @@ function readPString (buffer, offset, typeArgs, rootNode) {
   const { size, count } = getCount.call(this, buffer, offset, typeArgs, rootNode)
   const cursor = offset + size
   const strEnd = cursor + count
-  if (strEnd > buffer.length) {
-    throw new PartialReadError('Missing characters in string, found size is ' + buffer.length +
+  if (strEnd > buffer.byteLength) {
+    throw new PartialReadError('Missing characters in string, found size is ' + buffer.byteLength +
     ' expected size was ' + strEnd)
   }
 
   return {
-    value: buffer.toString('utf8', cursor, strEnd),
+    value: buffer.toString('utf8', cursor, strEnd), // TODO
     size: strEnd - offset
   }
 }
