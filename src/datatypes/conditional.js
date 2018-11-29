@@ -35,7 +35,7 @@ function sizeOfSwitch (value, { compareTo, fields, compareToValue, 'default': de
 
 function readOption (buffer, offset, typeArgs, context) {
   if (buffer.length < offset + 1) { throw new PartialReadError() }
-  const val = buffer.readUInt8(offset++)
+  const val = buffer.getUint8(offset++)
   if (val !== 0) {
     const retval = this.read(buffer, offset, typeArgs, context)
     retval.size++
@@ -45,9 +45,9 @@ function readOption (buffer, offset, typeArgs, context) {
 
 function writeOption (value, buffer, offset, typeArgs, context) {
   if (value != null) {
-    buffer.writeUInt8(1, offset++)
+    buffer.setUint8(offset++, 1)
     offset = this.write(value, buffer, offset, typeArgs, context)
-  } else { buffer.writeUInt8(0, offset++) }
+  } else { buffer.setUint8(offset++, 0) }
   return offset
 }
 
