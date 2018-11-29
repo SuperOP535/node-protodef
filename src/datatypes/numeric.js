@@ -3,96 +3,96 @@ const { PartialReadError } = require('../utils')
 function readI64 (buffer, offset) {
   if (offset + 8 > buffer.length) { throw new PartialReadError() }
   return {
-    value: [buffer.readInt32BE(offset), buffer.readInt32BE(offset + 4)],
+    value: [buffer.getInt32(offset), buffer.getInt32(offset + 4)],
     size: 8
   }
 }
 
 function writeI64 (value, buffer, offset) {
-  buffer.writeInt32BE(value[0], offset)
-  buffer.writeInt32BE(value[1], offset + 4)
+  buffer.setInt32(offset, value[0])
+  buffer.setInt32(offset + 4, value[1])
   return offset + 8
 }
 
 function readLI64 (buffer, offset) {
   if (offset + 8 > buffer.length) { throw new PartialReadError() }
   return {
-    value: [buffer.readInt32LE(offset + 4), buffer.readInt32LE(offset)],
+    value: [buffer.getInt32(offset + 4, true), buffer.getInt32(offset, true)],
     size: 8
   }
 }
 
 function writeLI64 (value, buffer, offset) {
-  buffer.writeInt32LE(value[0], offset + 4)
-  buffer.writeInt32LE(value[1], offset)
+  buffer.setInt32(offset + 4, value[0], true)
+  buffer.setInt32(offset, value[1], true)
   return offset + 8
 }
 
 function readU64 (buffer, offset) {
   if (offset + 8 > buffer.length) { throw new PartialReadError() }
   return {
-    value: [buffer.readUInt32BE(offset), buffer.readUInt32BE(offset + 4)],
+    value: [buffer.getUint32(offset), buffer.getUint32(offset + 4)],
     size: 8
   }
 }
 
 function writeU64 (value, buffer, offset) {
-  buffer.writeUInt32BE(value[0], offset)
-  buffer.writeUInt32BE(value[1], offset + 4)
+  buffer.setUint32(offset, value[0])
+  buffer.setUint32(offset + 4, value[1])
   return offset + 8
 }
 
 function readLU64 (buffer, offset) {
   if (offset + 8 > buffer.length) { throw new PartialReadError() }
   return {
-    value: [buffer.readUInt32LE(offset + 4), buffer.readUInt32LE(offset)],
+    value: [buffer.getUint32(offset + 4, true), buffer.getUint32(offset, true)],
     size: 8
   }
 }
 
 function writeLU64 (value, buffer, offset) {
-  buffer.writeUInt32LE(value[0], offset + 4)
-  buffer.writeUInt32LE(value[1], offset)
+  buffer.setUint32(offset + 4, value[0], true)
+  buffer.setUint32(offset, value[1])
   return offset + 8
 }
 
-function generateFunctions (bufferReader, bufferWriter, size, schema) {
+function generateFunctions (bufferReader, bufferWriter, size, little, schema) {
   const reader = function (buffer, offset) {
     if (offset + size > buffer.length) { throw new PartialReadError() }
-    const value = buffer[bufferReader](offset)
+    const value = buffer[bufferReader](offset, little)
     return {
       value: value,
       size: size
     }
   }
   const writer = function (value, buffer, offset) {
-    buffer[bufferWriter](value, offset)
+    buffer[bufferWriter](offset, value, little)
     return offset + size
   }
   return [reader, writer, size, schema]
 }
 
 const nums = {
-  'i8': ['readInt8', 'writeInt8', 1],
-  'u8': ['readUInt8', 'writeUInt8', 1],
-  'i16': ['readInt16BE', 'writeInt16BE', 2],
-  'u16': ['readUInt16BE', 'writeUInt16BE', 2],
-  'i32': ['readInt32BE', 'writeInt32BE', 4],
-  'u32': ['readUInt32BE', 'writeUInt32BE', 4],
-  'f32': ['readFloatBE', 'writeFloatBE', 4],
-  'f64': ['readDoubleBE', 'writeDoubleBE', 8],
-  'li8': ['readInt8', 'writeInt8', 1],
-  'lu8': ['readUInt8', 'writeUInt8', 1],
-  'li16': ['readInt16LE', 'writeInt16LE', 2],
-  'lu16': ['readUInt16LE', 'writeUInt16LE', 2],
-  'li32': ['readInt32LE', 'writeInt32LE', 4],
-  'lu32': ['readUInt32LE', 'writeUInt32LE', 4],
-  'lf32': ['readFloatLE', 'writeFloatLE', 4],
-  'lf64': ['readDoubleLE', 'writeDoubleLE', 8]
+  'i8': ['getInt8', 'setInt8', null, 1],
+  'u8': ['getUint8', 'setUint8', null, 1],
+  'i16': ['getInt16', 'setInt16', false, 2],
+  'u16': ['getUint16', 'setUint16', false, 2],
+  'i32': ['getInt32', 'setInt32', false, 4],
+  'u32': ['getUint32', 'setUint32', false, 4],
+  'f32': ['getFloat64', 'setFloat64', false, 4],
+  'f64': ['getFloat32', 'setFloat32', false, 8],
+  'li8': ['getInt8', 'setInt8', null, 1],
+  'lu8': ['getUint8', 'setUint8', null, 1],
+  'li16': ['getInt16', 'setInt16', true, 2],
+  'lu16': ['getUint16', 'setUint16', true, 2],
+  'li32': ['getInt32', 'setInt32', true, 4],
+  'lu32': ['getUint32', 'setUint32', true, 4],
+  'lf32': ['getFloat64', 'setFloat64', true, 4],
+  'lf64': ['getFloat32', 'setFloat32', true, 8]
 }
 
 const types = Object.keys(nums).reduce(function (types, num) {
-  types[num] = generateFunctions(nums[num][0], nums[num][1], nums[num][2], require('../../ProtoDef/schemas/numeric')[num])
+  types[num] = generateFunctions(nums[num][0], nums[num][1], nums[num][2], nums[num][3], require('../../ProtoDef/schemas/numeric')[num])
   return types
 }, {})
 types['i64'] = [readI64, writeI64, 8, require('../../ProtoDef/schemas/numeric')['i64']]
